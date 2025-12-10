@@ -5,7 +5,7 @@
 # wykonać w dowolny sposób we własnym zakresie.
 # =============================================================================
 import numpy as np
-
+import math
 
 def chebyshev_nodes(n: int = 10) -> np.ndarray | None:
     """Funkcja generująca wektor węzłów Czebyszewa drugiego rodzaju (n,) 
@@ -18,7 +18,10 @@ def chebyshev_nodes(n: int = 10) -> np.ndarray | None:
         (np.ndarray): Wektor węzłów Czebyszewa (n,).
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if not isinstance(n, int) or n <= 0:
+        return None
+
+    return np.cos(np.pi * np.arange(0, n) / (n-1))
 
 
 def bar_cheb_weights(n: int = 10) -> np.ndarray | None:
@@ -31,7 +34,16 @@ def bar_cheb_weights(n: int = 10) -> np.ndarray | None:
         (np.ndarray): Wektor wag dla węzłów Czebyszewa (n,).
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if not isinstance(n, int) or n <= 0:
+        return None
+    
+    w = np.ones(n)
+    w[0] = 0.5
+    w[-1] = 0.5 * (-1) ** (n - 1)
+    for j in range(1, n - 1):
+        w[j] = (-1) ** j
+    return w
+
 
 
 def barycentric_inte(
@@ -52,7 +64,32 @@ def barycentric_inte(
         (np.ndarray): Wektor wartości funkcji interpolującej (n,).
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if not (isinstance(xi, np.ndarray) and isinstance(yi, np.ndarray) and 
+            isinstance(wi, np.ndarray) and isinstance(x, np.ndarray)):
+        return None
+    if not (xi.ndim == 1 and yi.ndim == 1 and wi.ndim == 1 and x.ndim == 1):
+        return None
+    if not (len(xi) == len(yi) == len(wi)):
+        return None
+    m = len(xi)
+    n = len(x)
+    result = np.zeros(n)
+    for k in range(n):
+        numerator = 0.0
+        denominator = 0.0
+        exact_match = False
+        for j in range(m):
+            if x[k] == xi[j]:
+                result[k] = yi[j]
+                exact_match = True
+                break
+            temp = wi[j] / (x[k] - xi[j])
+            numerator += temp * yi[j]
+            denominator += temp
+        if not exact_match:
+            result[k] = numerator / denominator
+    return result
+
 
 
 def L_inf(
@@ -71,4 +108,9 @@ def L_inf(
         (float): Wartość normy L-nieskończoność.
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
+    if isinstance(xr, (int, float)) and isinstance(x, (int, float)):
+        return abs(xr - x)
+    
+    return np.max(np.abs(np.array(xr) - np.array(x)))
+
     pass
